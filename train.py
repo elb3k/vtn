@@ -27,7 +27,7 @@ parser.add_argument("--annotations", type=str, default="dataset/smth/train.json"
 parser.add_argument("--val-annotations", type=str, default="dataset/smth/val.json", help="Validation labels")
 parser.add_argument("--root-dir", type=str, default="dataset/smth/videos", help="Dataset files root-dir")
 parser.add_argument("--classes", type=int, default=174, help="Number of classes")
-parser.add_argument("--config", type=str, default='configs/longVViT.yaml', help="Config file")
+parser.add_argument("--config", type=str, default='configs/vtn.yaml', help="Config file")
 
 parser.add_argument("--dataset", choices=['ucf', 'smth'], default='smth')
 parser.add_argument("--weight-path", type=str, default="weights/smth/v1", help='Path to save weights')
