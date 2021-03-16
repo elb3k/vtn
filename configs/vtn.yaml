@@ -1,0 +1,28 @@
+# Template for single LongVViT
+
+# General input/ouput info
+frames: 32
+num_classes: 174
+img_size: 224
+patch_size: 16
+
+# Spatial Transformer
+spatial_args:
+  img_size: 224
+  in_chans: 3
+  mlp_ratio: 4
+  attn_drop_rate: 0.1
+  drop_rate: 0.1
+
+# Temporal Transformer
+temporal_args:
+  dim: 768
+  depth: 3
+  heads: 12
+  dim_head: 128
+  mlp_dim: 3072
+  attention_window: 32
+  attention_mode: sliding_chunks
+  emb_dropout: 0.1
+  dropout: 0.1
+  pool: cls
