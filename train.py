@@ -16,8 +16,8 @@ from torchvision import transforms
 
 from torch.utils.data import DataLoader, random_split
 from torch.optim import Adam, SGD, Adagrad
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from utils import load_yaml
+from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
+from utils import load_yaml, GradualWarmupScheduler
 from model import VTN
 
 # Parse arguments
@@ -36,7 +36,7 @@ parser.add_argument("--resume", type=int, default=0, help='Resume training from'
 # Hyperparameters
 parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate")
-parser.add_argument("--weight-decay", type=float, default=1e-6, help="Weight decay")
+parser.add_argument("--weight-decay", type=float, default=1e-3, help="Weight decay")
 parser.add_argument("--epochs", type=int, default=22, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.2, help="Validation split")
 
@@ -78,6 +78,7 @@ val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=8, pers
 # Loss and optimizer
 loss_func = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+scheduler = CosineAnnealingLR(optim, 100, 1e-7, 0)
 
 softmax = nn.LogSoftmax(dim=1)
 
@@ -99,6 +100,8 @@ for epoch in range(max(args.resume+1, 1), args.epochs+1):
     
     # Adjust learning rate
     adjust_learning_rate(optimizer, epoch)
+    # Cosine scheduler
+    scheduler.step(epoch)
 
     progress = tqdm(train_loader, desc=f"Epoch: {epoch}, loss: 0.000")
     for src, target in progress:
