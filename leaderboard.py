@@ -53,6 +53,12 @@ if torch.cuda.is_available():
 model.load_state_dict(torch.load(args.weight_path))
 model.eval()
 
+# Load labels
+with open(args.annotations, "r") as f:
+  labels = json.load(f)
+
+labels = [ t[0] for t in labels]
+
 
 # Load dataset
 dataset = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
@@ -75,8 +81,6 @@ for src, target in tqdm(dataloader, desc=f"Generating {args.output}"):
     
     with torch.no_grad():
         output = model(src)
-        loss = loss_func(output, target)
-        val_loss += loss.item()
         
         output = softmax(output).cpu().detach()
         # Top 5
