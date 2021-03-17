@@ -3,6 +3,7 @@ from torch import nn, einsum
 import torch.nn.functional as F
 from argparse import Namespace
 import timm
+from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
 
 from longformer import Longformer
@@ -22,15 +23,12 @@ class VTN(nn.Module):
         self.collapse_frames = Rearrange('b f c h w -> (b f) c h w')
 
         #[Spatial] Transformer attention 
-        self.spatial_transformer = timm.create_model(f'vit_base_patch{patch_size}_{img_size}', pretrained=True, **vars(spatial_args))
+        self.spatial_transformer = timm.create_model(f'vit_small_patch{patch_size}_{img_size}', pretrained=True, **vars(spatial_args))
         
         # Spatial preprocess
         config = resolve_data_config({}, model=self.spatial_transformer)
         self.preprocess = create_transform(**config)
         
-        # Hack for getting features
-        self.spatial_transformer.forward = self.spatial_transformer.forward_features
-
         #Spatial to temporal rearrange
         self.spatial2temporal = Rearrange('(b f) d -> b f d', f=frames)
 
@@ -49,7 +47,7 @@ class VTN(nn.Module):
         x = self.collapse_frames(img)
         
         # Spatial Transformer
-        x = self.spatial_transformer(x)
+        x = self.spatial_transformer.forward_features(x)
 
         # Spatial to temporal
         x = self.spatial2temporal(x)

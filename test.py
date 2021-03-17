@@ -46,6 +46,7 @@ cfg = load_yaml(args.config)
 
 # Load model
 model = VTN(**vars(cfg))
+preprocess = model.preprocess
 
 if torch.cuda.is_available():
     model = nn.DataParallel(model).cuda()
@@ -64,10 +65,10 @@ if args.dataset == 'ucf':
         index = int(index)
         class_map[name] = index
 
-  dataset = UCF101(args.annotations, args.root_dir, preprocess=model.preprocess, classes=args.classes, frames=cfg.frames, train=False, class_map=class_map)
+  dataset = UCF101(args.annotations, args.root_dir, preprocess=preprocess, classes=args.classes, frames=cfg.frames, train=False, class_map=class_map)
 
 elif args.dataset == 'smth':
-  dataset = SMTHV2(args.annotations, args.root_dir, preprocess=model.preprocess, frames=cfg.frames)
+  dataset = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 
 dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=16)
 

@@ -53,6 +53,7 @@ cfg = load_yaml(args.config)
 
 # Load model
 model = VTN(**vars(cfg))
+preprocess = model.preprocess
 
 if torch.cuda.is_available():
     model = nn.DataParallel(model).cuda()
@@ -63,11 +64,11 @@ if args.resume > 0:
 
 # Load dataset
 if args.dataset == 'ucf':
-  train_set = UCF101(args.annotations, args.root_dir, preprocess=model.preprocess, classes=args.classes, frames=cfg.firames)
-  val_set = UCF101(args.val_annotations, args.root_dir, preprocess=model.preprocess, classes=args.classes, frames=cfg.firames) 
+  train_set = UCF101(args.annotations, args.root_dir, preprocess=preprocess, classes=args.classes, frames=cfg.frames)
+  val_set = UCF101(args.val_annotations, args.root_dir, preprocess=preprocess, classes=args.classes, frames=cfg.frames) 
 elif args.dataset == 'smth':
-  train_set = SMTHV2(args.annotations, args.root_dir, preprocess=model.preprocess, frames=cfg.frames)
-  val_set = SMTHV2(args.val_annotations, args.root_dir, preprocess=model.preprocess, frames=cfg.frames)
+  train_set = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+  val_set = SMTHV2(args.val_annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 
 # Split
 train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=8, persistent_workers=True)

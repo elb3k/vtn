@@ -1,7 +1,7 @@
 # Template for single LongVViT
 
 # General input/ouput info
-frames: 32
+frames: 16
 num_classes: 174
 img_size: 224
 patch_size: 16
@@ -10,7 +10,6 @@ patch_size: 16
 spatial_args:
   img_size: 224
   in_chans: 3
-  mlp_ratio: 4
   attn_drop_rate: 0.1
   drop_rate: 0.1
 
@@ -21,7 +20,7 @@ temporal_args:
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  attention_window: 32
+  attention_window: 16
   attention_mode: sliding_chunks
   emb_dropout: 0.1
   dropout: 0.1

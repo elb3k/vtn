@@ -9,14 +9,6 @@ import yaml
 from argparse import Namespace
 import torchvision.transforms.functional as F
 
-preprocess = transforms.Compose(
-    [
-        transforms.Resize((224, 224)),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-    ]
-)
 
 def load_yaml(file):
     """
