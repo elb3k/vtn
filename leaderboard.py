@@ -2,7 +2,8 @@ import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 
-import yaml
+import json
+import pandas as pd
 from argparse import ArgumentParser, Namespace
 import torch
 torch.backends.cudnn.benchmark = True
@@ -74,7 +75,7 @@ softmax = nn.LogSoftmax(dim=1)
 # Output
 data = []
 
-for src, target in tqdm(dataloader, desc=f"Generating {args.output}"):
+for i, (src, target) in tqdm(enumerate(dataloader), total=len(dataloader), desc=f"Generating {args.output}"):
     if torch.cuda.is_available():
         src = src.cuda()
         target = target.cuda()
