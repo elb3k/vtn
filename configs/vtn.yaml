@@ -22,6 +22,6 @@ temporal_args:
   mlp_dim: 3072
   attention_window: 16
   attention_mode: sliding_chunks
-  emb_dropout: 0.1
-  dropout: 0.1
+  emb_dropout: 0.2
+  dropout: 0.2
   pool: cls
