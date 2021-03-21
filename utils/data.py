@@ -5,7 +5,7 @@ import numpy as np
 import json
 from PIL import Image
 import io
-import cv2
+import av
 import torchvision
 import fs
 import fs.copy
@@ -14,6 +14,7 @@ import av
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from functools import lru_cache
+from glob import glob
 
 class UCF101(Dataset):
 
@@ -81,17 +82,11 @@ def getK(arr, k=16):
 @lru_cache
 def read_video(root, frames):
   
-  cap = cv2.VideoCapture(root)
+  cap = av.open(root)
   imgs = []
   
-  while True:
-    status, img = cap.read()
-    if not status:
-      break
-
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    imgs.append(Image.fromarray(img))
-  
+  for img in cap.decode(video=0):
+    imgs.append(img.to_image())
   assert len(imgs) > 0, f'{video} read error'
   return getK(imgs, frames)
 
@@ -131,3 +126,35 @@ class SMTHV2(Dataset):
         
                 
         return imgs, int(label)
+
+
+# Kinetics-400
+class Kinetics400(Dataset):
+  
+  def __init__(self, labels, root_dir, preprocess=None, frames=16):
+    
+    with open(labels, "r") as f:
+      labels = json.load(f)
+    
+    files = glob(f"{root_dir}/*/*")
+    self.src = [ (file, labels[file.split('/')[-2]] )  for file in files ]
+    self.frames = frames
+    self.preprocess = preprocess
+
+  def __len__(self):
+    return len(self.src)
+
+  def __getitem__(self, idx):
+    
+    if torch.is_tensor(idx):
+      idx = idx.tolist()
+
+    id, label = self.src[idx]
+
+    imgs = read_video(id, self.frames)
+
+    if self.preprocess is not None:
+      imgs = list(map(lambda img: self.preprocess(img).unsqueeze(0), imgs))
+      imgs = torch.cat(imgs)
+
+    return imgs, int(label)

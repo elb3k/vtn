@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
 
 from argparse import ArgumentParser
 import torch
@@ -11,7 +11,7 @@ import torch.nn as nn
 import numpy as np
 from tqdm import tqdm, trange
 
-from utils import UCF101, SMTHV2
+from utils import UCF101, SMTHV2, Kinetics400
 from torchvision import transforms
 
 from torch.utils.data import DataLoader, random_split
@@ -23,26 +23,26 @@ from model import VTN
 # Parse arguments
 parser = ArgumentParser()
 
-parser.add_argument("--annotations", type=str, default="dataset/smth/train.json", help="Dataset labels path")
-parser.add_argument("--val-annotations", type=str, default="dataset/smth/val.json", help="Validation labels")
-parser.add_argument("--root-dir", type=str, default="dataset/smth/videos", help="Dataset files root-dir")
-parser.add_argument("--classes", type=int, default=174, help="Number of classes")
+parser.add_argument("--annotations", type=str, default="dataset/kinetics-400/annotations.json", help="Dataset labels path")
+parser.add_argument("--val-annotations", type=str, default="dataset/kinetics-400/annotations.json", help="Dataset labels path")
+parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/train", help="Dataset files root-dir")
+parser.add_argument("--classes", type=int, default=400, help="Number of classes")
 parser.add_argument("--config", type=str, default='configs/vtn.yaml', help="Config file")
 
-parser.add_argument("--dataset", choices=['ucf', 'smth'], default='smth')
-parser.add_argument("--weight-path", type=str, default="weights/smth/v1", help='Path to save weights')
+parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics')
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/v1", help='Path to save weights')
 parser.add_argument("--resume", type=int, default=0, help='Resume training from')
 
 # Hyperparameters
 parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
-parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate")
-parser.add_argument("--weight-decay", type=float, default=1e-3, help="Weight decay")
+parser.add_argument("--learning_rate", type=float, default=1e-3, help="Learning rate")
+parser.add_argument("--weight-decay", type=float, default=1e-5, help="Weight decay")
 parser.add_argument("--epochs", type=int, default=22, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.2, help="Validation split")
 
 # Learning scheduler
 LRS = [1, 0.1, 0.01]
-STEPS = [1, 15, 19]
+STEPS = [1, 7, 15]
 
 # Parse arguments
 args = parser.parse_args()
@@ -69,6 +69,9 @@ if args.dataset == 'ucf':
 elif args.dataset == 'smth':
   train_set = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
   val_set = SMTHV2(args.val_annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+elif args.dataset == 'kinetics':
+  dataset = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+  train_set, val_set = random_split(dataset, [len(dataset) - int(len(dataset) * args.validation_split), int(len(dataset) * args.validation_split)], generator=torch.Generator().manual_seed(12345))
 
 # Split
 train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=8, persistent_workers=True)
@@ -78,8 +81,6 @@ val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=8, pers
 # Loss and optimizer
 loss_func = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-scheduler = CosineAnnealingLR(optim, 100, 1e-7, 0)
-
 softmax = nn.LogSoftmax(dim=1)
 
 def adjust_learning_rate(optimizer, epoch):
@@ -97,12 +98,10 @@ def adjust_learning_rate(optimizer, epoch):
 
 
 for epoch in range(max(args.resume+1, 1), args.epochs+1):
-    
+        
     # Adjust learning rate
+    #scheduler = CosineAnnealingLR(optimizer, 100, 1e-4, -1)
     adjust_learning_rate(optimizer, epoch)
-    # Cosine scheduler
-    scheduler.step(epoch)
-
     progress = tqdm(train_loader, desc=f"Epoch: {epoch}, loss: 0.000")
     for src, target in progress:
         
@@ -117,7 +116,9 @@ for epoch in range(max(args.resume+1, 1), args.epochs+1):
         loss = loss_func(output, target)
         loss.backward()
         optimizer.step()
-
+        # Cosine scheduler
+        #scheduler.step()
+ 
         # Show loss
         loss_val = loss.item()
         progress.set_description(f"Epoch: {epoch}, loss: {loss_val}")
