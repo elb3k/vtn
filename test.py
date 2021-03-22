@@ -28,7 +28,7 @@ parser.add_argument("--root-dir", type=str, default="dataset/smth/videos", help=
 parser.add_argument("--classInd", type=str, default="dataset/ucf/annotation/classInd.txt", help="ClassInd file")
 parser.add_argument("--classes", type=int, default=174, help="Number of classes")
 
-parser.add_argument("--dataset", choices=['ucf', 'smth'], default='smth', help='Dataset type')
+parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='smth', help='Dataset type')
 parser.add_argument("--weight-path", type=str, default="weights/smth/v1/weights_3.pth", help='Path to load weights')
 
 # Hyperparameters
@@ -69,6 +69,9 @@ if args.dataset == 'ucf':
 
 elif args.dataset == 'smth':
   dataset = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+
+elif args.dataset == 'kinetics':
+  dataset = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 
 dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=16)
 
