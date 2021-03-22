@@ -80,15 +80,46 @@ def getK(arr, k=16):
   return out
 
 @lru_cache
-def read_video(root, frames):
+def read_video(root, frames, target=2.56):
   
-  cap = av.open(root)
-  imgs = []
-  
-  for img in cap.decode(video=0):
-    imgs.append(img.to_image())
-  assert len(imgs) > 0, f'{video} read error'
-  return getK(imgs, frames)
+  try:
+    # Read video
+    cap = av.open(root)
+
+    # Metadata
+    target_fps = 1/target
+    fps = float(cap.streams.video[0].average_rate)
+    duration = cap.streams.video[0].frames / fps
+
+    # No metadata old school decode
+    if duration is None:
+      imgs = []
+      for img in cap.decode(video=0):
+        imgs.append(img.to_image())
+      assert len(imgs) > 0, f'{root} 0 frames'
+      return getK(imgs, frames)
+
+    # Select only duration [Random]
+    else:
+      imgs = []
+      # Random start time
+      start_time = np.random.uniform(low=0.0, high=duration-target)
+      stop_time = start_time + target
+
+      for i, img in enumerate(cap.decode(video=0)):
+        curr = i / fps
+        # Starting time
+        if curr >= start_time:
+          if curr > stop_time:
+            break
+          # Before stop time
+          imgs.append(img.to_image())
+      
+      assert len(imgs) > 0, f"{root}, 0 frames"
+      return getK(imgs, frames)
+
+  except Exception as e:
+    print(f"Read error of video {root}, {e}")
 
 class SMTHV2(Dataset):
 
