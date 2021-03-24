@@ -80,7 +80,7 @@ def getK(arr, k=16):
   return out
 
 @lru_cache
-def read_video(root, frames, target=2.56):
+def read_video(root, frames, target=5.12):
   
   try:
     # Read video
