@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 
 import yaml
 from argparse import ArgumentParser, Namespace
@@ -12,7 +12,7 @@ import numpy as np
 from tqdm import tqdm, trange
 
 from model import VTN
-from utils.data import UCF101, SMTHV2
+from utils.data import UCF101, SMTHV2, Kinetics400
 from torchvision import transforms
 
 from torch.utils.data import DataLoader, random_split
@@ -23,17 +23,17 @@ from utils import load_yaml
 # Parse arguments
 parser = ArgumentParser()
 
-parser.add_argument("--annotations", type=str, default="dataset/smth/val.json", help="Dataset labels path")
-parser.add_argument("--root-dir", type=str, default="dataset/smth/videos", help="Dataset files root-dir")
+parser.add_argument("--annotations", type=str, default="dataset/kinetics-400/annotations.json", help="Dataset labels path")
+parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/val", help="Dataset files root-dir")
 parser.add_argument("--classInd", type=str, default="dataset/ucf/annotation/classInd.txt", help="ClassInd file")
-parser.add_argument("--classes", type=int, default=174, help="Number of classes")
+parser.add_argument("--classes", type=int, default=400, help="Number of classes")
 
-parser.add_argument("--dataset", choices=['ucf', 'smth'], default='smth', help='Dataset type')
-parser.add_argument("--weight-path", type=str, default="weights/smth/v1/weights_3.pth", help='Path to load weights')
+parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics', help='Dataset type')
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/v1/weights_7.pth", help='Path to load weights')
 
 # Hyperparameters
-parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
-parser.add_argument("--config", type=str, default="configs/longVViT.yaml", help="Config file")
+parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+parser.add_argument("--config", type=str, default="configs/vtn.yaml", help="Config file")
 
 
 
@@ -69,6 +69,9 @@ if args.dataset == 'ucf':
 
 elif args.dataset == 'smth':
   dataset = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+
+elif args.dataset == 'kinetics':
+  dataset = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 
 dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=16)
 
