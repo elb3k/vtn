@@ -9,10 +9,10 @@ from timm.data.transforms_factory import create_transform
 from longformer import Longformer
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
-
+from torchvision import transforms
 
 class VTN(nn.Module):
-    def __init__(self, *, frames, num_classes, img_size, patch_size, spatial_args, temporal_args):
+    def __init__(self, *, frames, num_classes, img_size, patch_size, spatial_frozen, spatial_size, spatial_args, temporal_args):
         super().__init__()
         self.frames = frames
 
@@ -23,12 +23,22 @@ class VTN(nn.Module):
         self.collapse_frames = Rearrange('b f c h w -> (b f) c h w')
 
         #[Spatial] Transformer attention 
-        self.spatial_transformer = timm.create_model(f'vit_small_patch{patch_size}_{img_size}', pretrained=True, **vars(spatial_args))
+        self.spatial_transformer = timm.create_model(f'vit_{spatial_size}_patch{patch_size}_{img_size}', pretrained=True, **vars(spatial_args))
         
+        # Freeze spatial backbone
+        self.spatial_frozen = spatial_frozen
+        if spatial_frozen:
+          self.spatial_transformer.eval()
         # Spatial preprocess
-        config = resolve_data_config({}, model=self.spatial_transformer)
-        self.preprocess = create_transform(**config)
-        
+        self.preprocess = transforms.Compose([
+          transforms.Resize(256),
+          transforms.RandomCrop(img_size),
+          transforms.RandomHorizontalFlip(),
+          transforms.ToTensor(),
+          transforms.Normalize(mean=self.spatial_transformer.default_cfg['mean'], std=self.spatial_transformer.default_cfg['std'])
+        ])
+
+       
         #Spatial to temporal rearrange
         self.spatial2temporal = Rearrange('(b f) d -> b f d', f=frames)
 
@@ -47,8 +57,12 @@ class VTN(nn.Module):
         x = self.collapse_frames(img)
         
         # Spatial Transformer
-        x = self.spatial_transformer.forward_features(x)
-
+        if self.spatial_frozen:
+          with torch.no_grad():
+            x = self.spatial_transformer.forward_features(x)
+        else:
+          x = self.spatial_transformer.forward_features(x)
+  
         # Spatial to temporal
         x = self.spatial2temporal(x)
 

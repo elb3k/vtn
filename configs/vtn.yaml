@@ -5,13 +5,15 @@ frames: 16
 num_classes: 400
 img_size: 224
 patch_size: 16
+spatial_frozen: False
+spatial_size: base
 
 # Spatial Transformer
 spatial_args:
   img_size: 224
   in_chans: 3
-  attn_drop_rate: 0.1
-  drop_rate: 0.1
+  attn_drop_rate: 0.0
+  drop_rate: 0.0
 
 # Temporal Transformer
 temporal_args:
@@ -20,7 +22,7 @@ temporal_args:
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  attention_window: 16
+  attention_window: 8
   attention_mode: sliding_chunks
   emb_dropout: 0.1
   dropout: 0.1
