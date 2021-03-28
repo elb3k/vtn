@@ -1,4 +1,4 @@
-# VTN - ViT and Longformer
+# Lin-VTN - ViT and Linformer
 
 # General input/ouput info
 frames: 16
@@ -8,6 +8,7 @@ patch_size: 16
 spatial_frozen: False
 spatial_size: base
 
+
 # Spatial Transformer
 spatial_args:
   img_size: 224
@@ -16,15 +17,14 @@ spatial_args:
   drop_rate: 0.0
 
 # Temporal Transformer
-temporal_type: longformer
+temporal_type: linformer
 temporal_args:
+  k: 64
   dim: 768
   depth: 3
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  attention_window: 8
-  attention_mode: sliding_chunks
-  emb_dropout: 0.1
+  one_kv_head: False
+  share_kv: False
   dropout: 0.1
-  pool: cls
