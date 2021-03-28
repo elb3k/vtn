@@ -27,6 +27,7 @@ parser = ArgumentParser()
 parser.add_argument("--annotations", type=str, default="dataset/kinetics-400/annotations.json", help="Dataset labels path")
 parser.add_argument("--val-annotations", type=str, default="dataset/kinetics-400/annotations.json", help="Dataset labels path")
 parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/train", help="Dataset files root-dir")
+parser.add_argument("--val-root-dir", type=str, default="dataset/kinetics-400/val", help="Dataset files root-dir")
 parser.add_argument("--classes", type=int, default=400, help="Number of classes")
 parser.add_argument("--config", type=str, default='configs/vtn.yaml', help="Config file")
 
@@ -73,12 +74,13 @@ elif args.dataset == 'smth':
   train_set = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
   val_set = SMTHV2(args.val_annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 elif args.dataset == 'kinetics':
-  dataset = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
-  train_set, val_set = random_split(dataset, [len(dataset) - int(len(dataset) * args.validation_split), int(len(dataset) * args.validation_split)], generator=torch.Generator().manual_seed(12345))
+  train_set = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+  #train_set, val_set = random_split(dataset, [len(dataset) - int(len(dataset) * args.validation_split), int(len(dataset) * args.validation_split)], generator=torch.Generator().manual_seed(12345))
+  val_set = Kinetics400(args.annotations, args.val_root_dir, preprocess=preprocess, frames=cfg.frames)
 
 # Split
 train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=16, persistent_workers=True)
-val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=8, persistent_workers=True)
+val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=16, persistent_workers=True)
 
 # Tensorboard 
 tensorboard = SummaryWriter(args.log_path)
@@ -98,16 +100,16 @@ def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):
 
     #lr = args.learning_rate * LRS[ind]
     
-    # First 3 epochs warmup
-    if epoch <= 3:
+    # First 2 epochs warmup
+    if epoch <= 2:
       # Linear warmup from warmup learning rate to learning rate
       cur_iter = (epoch-1) * max_iter + cur_iter
-      lr = args.warmup_rate +  cur_iter / (max_iter * 3) * (args.learning_rate - args.warmup_rate) 
+      lr = args.warmup_rate +  cur_iter / (max_iter * 2) * (args.learning_rate - args.warmup_rate) 
     
     else:
       # Cosine learning rate
-      cur_iter = (epoch - 4) * max_iter + cur_iter
-      full_iter = (args.epochs - 3) * max_iter
+      cur_iter = (epoch - 3) * max_iter + cur_iter
+      full_iter = (args.epochs - 2) * max_iter
       
       # Minimum learning rate
       min_learning_rate = 1e-6

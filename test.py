@@ -27,15 +27,8 @@ parser.add_argument("--annotations", type=str, default="dataset/kinetics-400/ann
 parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/val", help="Dataset files root-dir")
 parser.add_argument("--classInd", type=str, default="dataset/ucf/annotation/classInd.txt", help="ClassInd file")
 parser.add_argument("--classes", type=int, default=400, help="Number of classes")
-
-<<<<<<< HEAD
 parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics', help='Dataset type')
-parser.add_argument("--weight-path", type=str, default="weights/kinetics/v1/weights_7.pth", help='Path to load weights')
-=======
-parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='smth', help='Dataset type')
-parser.add_argument("--weight-path", type=str, default="weights/smth/v1/weights_3.pth", help='Path to load weights')
->>>>>>> 6c2ff91361b92615009b4744ac85df4c5922a7f9
-
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/v2/weights_2.pth", help='Path to load weights')
 # Hyperparameters
 parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
 parser.add_argument("--config", type=str, default="configs/vtn.yaml", help="Config file")
