@@ -17,7 +17,7 @@ Basic dataset loaders for
 3. UCF-101
 
 ### Usage
-```
+```python
 import torch
 from utils import load_yaml
 from model import VTN
