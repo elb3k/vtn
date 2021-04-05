@@ -1,4 +1,4 @@
-# Lin-VTN - ViT and Linformer
+# Full-VTN - ViT and Full Self Attention Transformer
 
 # General input/ouput info
 frames: 16
@@ -17,14 +17,11 @@ spatial_args:
   drop_rate: 0.0
 
 # Temporal Transformer
-temporal_type: linformer
+temporal_type: transformer
 temporal_args:
-  k: 8
   dim: 768
   depth: 3
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  one_kv_head: False
-  share_kv: True
   dropout: 0.1
