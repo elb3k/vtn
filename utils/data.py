@@ -92,7 +92,7 @@ def read_video(root, frames, target=5.12):
     duration = cap.streams.video[0].frames / fps
 
     # No metadata old school decode
-    if duration is None:
+    if duration is None or duration < target:
       imgs = []
       for img in cap.decode(video=0):
         imgs.append(img.to_image())
@@ -162,8 +162,9 @@ class SMTHV2(Dataset):
 # Kinetics-400
 class Kinetics400(Dataset):
   
-  def __init__(self, labels, root_dir, preprocess=None, frames=16):
+  def __init__(self, labels, root_dir, preprocess=None, frames=16, per_sample=1):
     
+    assert per_sample > 0
     with open(labels, "r") as f:
       labels = json.load(f)
     
@@ -171,17 +172,19 @@ class Kinetics400(Dataset):
     self.src = [ (file, labels[file.split('/')[-2]] )  for file in files ]
     self.frames = frames
     self.preprocess = preprocess
+    self.per_sample = per_sample
 
   def __len__(self):
-    return len(self.src)
+    return len(self.src) * self.per_sample
 
   def __getitem__(self, idx):
     
     if torch.is_tensor(idx):
       idx = idx.tolist()
-
+    
+    idx = idx//self.per_sample
     id, label = self.src[idx]
-
+    
     imgs = read_video(id, self.frames)
 
     if self.preprocess is not None:

@@ -11,7 +11,14 @@ import torchvision.transforms.functional as F
 
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torchvision import transforms
 
+preprocess = transforms.Compose([
+  transforms.Resize(256),
+  transforms.RandomCrop(224),
+  transforms.ToTensor(),
+  transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+])
 
 def load_yaml(file):
     """
