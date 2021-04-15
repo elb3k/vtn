@@ -1,0 +1,27 @@
+# Full-VTN - ViT and Full Self Attention Transformer
+
+# General input/ouput info
+frames: 16
+num_classes: 400
+img_size: 224
+patch_size: 16
+spatial_frozen: False
+spatial_size: base
+
+
+# Spatial Transformer
+spatial_args:
+  img_size: 224
+  in_chans: 3
+  attn_drop_rate: 0.0
+  drop_rate: 0.0
+
+# Temporal Transformer
+temporal_type: transformer
+temporal_args:
+  dim: 768
+  depth: 3
+  heads: 12
+  dim_head: 128
+  mlp_dim: 3072
+  dropout: 0.1

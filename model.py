@@ -8,6 +8,7 @@ from timm.data.transforms_factory import create_transform
 
 from longformer import Longformer
 from linformer import Linformer
+from transformer import Transformer
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 from torchvision import transforms
@@ -44,7 +45,7 @@ class VTN(nn.Module):
         self.spatial2temporal = Rearrange('(b f) d -> b f d', f=frames)
 
         #[Temporal] Transformer_attention
-        assert temporal_type in ['longformer', 'linformer'], "Only longformer, linformer are supported"
+        assert temporal_type in ['longformer', 'linformer', 'transformer'], "Only longformer, linformer, transformer are supported"
         # Copy seq_len to frames
         temporal_args.seq_len = frames
         
@@ -52,6 +53,8 @@ class VTN(nn.Module):
           self.temporal_transformer = Longformer(**vars(temporal_args))
         elif temporal_type == 'linformer':
           self.temporal_transformer = Linformer(**vars(temporal_args))
+        elif temporal_type == 'transformer':
+          self.temporal_transformer = Transformer(**vars(temporal_args))
 
         # Classifer
         self.mlp_head = nn.Sequential(
