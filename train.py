@@ -16,7 +16,7 @@ from torchvision import transforms
 
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
-from torch.optim import Adam, SGD, Adagrad
+from torch.optim import AdamW, SGD, Adagrad
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 from utils import load_yaml, GradualWarmupScheduler
 from model import VTN
@@ -29,11 +29,11 @@ parser.add_argument("--val-annotations", type=str, default="dataset/kinetics-400
 parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/train", help="Dataset files root-dir")
 parser.add_argument("--val-root-dir", type=str, default="dataset/kinetics-400/val", help="Dataset files root-dir")
 parser.add_argument("--classes", type=int, default=400, help="Number of classes")
-parser.add_argument("--config", type=str, default='configs/vtn.yaml', help="Config file")
+parser.add_argument("--config", type=str, default='configs/lin-vtn.yaml', help="Config file")
 
 parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics')
-parser.add_argument("--weight-path", type=str, default="weights/kinetics/v2", help='Path to save weights')
-parser.add_argument("--log-path", type=str, default="log/kinetics/v2", help='Path to save weights')
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/lin-v3", help='Path to save weights')
+parser.add_argument("--log-path", type=str, default="log/kinetics/lin-v3", help='Path to save weights')
 parser.add_argument("--resume", type=int, default=0, help='Resume training from')
 
 # Hyperparameters
@@ -41,7 +41,7 @@ parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
 parser.add_argument("--warmup_rate", type=float, default=1e-3, help="Learning rate")
 parser.add_argument("--learning_rate", type=float, default=1e-2, help="Learning rate")
 parser.add_argument("--weight-decay", type=float, default=1e-5, help="Weight decay")
-parser.add_argument("--epochs", type=int, default=22, help="Number of epochs")
+parser.add_argument("--epochs", type=int, default=25, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.1, help="Validation split")
 
 # Learning scheduler
@@ -80,7 +80,7 @@ elif args.dataset == 'kinetics':
 
 # Split
 train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=16, persistent_workers=True)
-val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=16, persistent_workers=True)
+val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=8, persistent_workers=True)
 
 # Tensorboard 
 tensorboard = SummaryWriter(args.log_path)
@@ -100,19 +100,19 @@ def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):
 
     #lr = args.learning_rate * LRS[ind]
     
-    # First 2 epochs warmup
-    if epoch <= 2:
+    # First 1 epochs warmup
+    if epoch <= 1:
       # Linear warmup from warmup learning rate to learning rate
       cur_iter = (epoch-1) * max_iter + cur_iter
-      lr = args.warmup_rate +  cur_iter / (max_iter * 2) * (args.learning_rate - args.warmup_rate) 
+      lr = args.warmup_rate +  cur_iter / (max_iter * 1) * (args.learning_rate - args.warmup_rate) 
     
     else:
       # Cosine learning rate
-      cur_iter = (epoch - 3) * max_iter + cur_iter
-      full_iter = (args.epochs - 2) * max_iter
+      cur_iter = (epoch - 2) * max_iter + cur_iter
+      full_iter = (args.epochs - 1) * max_iter
       
       # Minimum learning rate
-      min_learning_rate = 1e-6
+      min_learning_rate = 1e-7
 
       lr = min_learning_rate + (args.learning_rate - min_learning_rate) * (np.cos(np.pi * cur_iter / full_iter) + 1.0) * 0.5
     
