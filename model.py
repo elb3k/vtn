@@ -32,7 +32,7 @@ class VTN(nn.Module):
           self.spatial_transformer.eval()
         # Spatial preprocess
         self.preprocess = transforms.Compose([
-          transforms.Resize(256),
+          transforms.Resize(320),
           transforms.RandomCrop(img_size),
           transforms.RandomHorizontalFlip(),
           transforms.ToTensor(),
@@ -58,6 +58,8 @@ class VTN(nn.Module):
             nn.LayerNorm(temporal_args.dim),
             nn.Linear(temporal_args.dim, num_classes)
         )
+        # Random init 0.0 mean, 0.02 std
+        nn.init.normal_(self.mlp_head[1].weight, mean=0.0, std=0.02)
 
     def forward(self, img):
 
