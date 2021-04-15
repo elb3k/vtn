@@ -19,12 +19,13 @@ spatial_args:
 # Temporal Transformer
 temporal_type: linformer
 temporal_args:
-  k: 64
+  k: 8
   dim: 768
   depth: 3
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  one_kv_head: False
-  share_kv: False
+  one_kv_head: True
+  share_kv: True
   dropout: 0.1
+  emb_dropout: 0.1
