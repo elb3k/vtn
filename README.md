@@ -33,3 +33,12 @@ preds = model(video) # (1, 400)
 
 Parameters are self-explanatory in config file
 
+
+### Results
+| Model           | Top-1 | Top-5 | Weights |
+| ----------      | ----- | ----- | ------- |
+| Longformer-VTN  | 78.9% | 93.7% | taken [from](https://arxiv.org/abs/2102.00719) |
+| Transformer-VTN | 78.0% | 93.7% | taken [from](https://arxiv.org/abs/2102.05095) |
+| Linformer-VTN   | 74.2% | 90.7% | lin-v3/weights-25.pth |
+
+
