@@ -14,7 +14,7 @@ from einops.layers.torch import Rearrange
 from torchvision import transforms
 
 class VTN(nn.Module):
-    def __init__(self, *, frames, num_classes, img_size, patch_size, spatial_frozen, spatial_size, spatial_args, temporal_type, temporal_args):
+    def __init__(self, *, frames, num_classes, img_size, patch_size, spatial_frozen, spatial_size, spatial_args, temporal_type, temporal_args, spatial_suffix=''):
         super().__init__()
         self.frames = frames
 
@@ -25,7 +25,7 @@ class VTN(nn.Module):
         self.collapse_frames = Rearrange('b f c h w -> (b f) c h w')
 
         #[Spatial] Transformer attention 
-        self.spatial_transformer = timm.create_model(f'vit_{spatial_size}_patch{patch_size}_{img_size}', pretrained=True, **vars(spatial_args))
+        self.spatial_transformer = timm.create_model(f'vit_{spatial_size}_patch{patch_size}_{img_size}{spatial_suffix}', pretrained=True, **vars(spatial_args))
         
         # Freeze spatial backbone
         self.spatial_frozen = spatial_frozen
@@ -33,7 +33,7 @@ class VTN(nn.Module):
           self.spatial_transformer.eval()
         # Spatial preprocess
         self.preprocess = transforms.Compose([
-          transforms.Resize(320),
+          transforms.Resize(256),
           transforms.RandomCrop(img_size),
           transforms.RandomHorizontalFlip(),
           transforms.ToTensor(),
