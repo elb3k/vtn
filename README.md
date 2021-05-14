@@ -39,6 +39,4 @@ Parameters are self-explanatory in config file
 | ----------      | ----- | ----- | ------- |
 | Longformer-VTN  | 78.9% | 93.7% | taken [from](https://arxiv.org/abs/2102.00719) |
 | Transformer-VTN | 78.0% | 93.7% | taken [from](https://arxiv.org/abs/2102.05095) |
-| Linformer-VTN   | 74.2% | 90.7% | lin-v3/weights-25.pth |
-
-
+| Linformer-VTN   | 75.6% | 92.6% | lin-v8/weights-17.pth | 

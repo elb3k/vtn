@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,2,3"
 
 from argparse import ArgumentParser
 import torch
@@ -32,21 +32,21 @@ parser.add_argument("--classes", type=int, default=400, help="Number of classes"
 parser.add_argument("--config", type=str, default='configs/lin-vtn.yaml', help="Config file")
 
 parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics')
-parser.add_argument("--weight-path", type=str, default="weights/kinetics/lin-v3", help='Path to save weights')
-parser.add_argument("--log-path", type=str, default="log/kinetics/lin-v3", help='Path to save weights')
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/21k-lin-v1", help='Path to save weights')
+parser.add_argument("--log-path", type=str, default="log/kinetics/21k-lin-v1", help='Path to save weights')
 parser.add_argument("--resume", type=int, default=0, help='Resume training from')
 
 # Hyperparameters
 parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
 parser.add_argument("--warmup_rate", type=float, default=1e-3, help="Learning rate")
 parser.add_argument("--learning_rate", type=float, default=1e-2, help="Learning rate")
-parser.add_argument("--weight-decay", type=float, default=1e-5, help="Weight decay")
+parser.add_argument("--weight-decay", type=float, default=1e-4, help="Weight decay")
 parser.add_argument("--epochs", type=int, default=25, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.1, help="Validation split")
 
 # Learning scheduler
 LRS = [1, 0.1, 0.01]
-STEPS = [1, 7, 15]
+STEPS = [1, 14, 24]
 
 # Parse arguments
 args = parser.parse_args()
@@ -87,44 +87,48 @@ tensorboard = SummaryWriter(args.log_path)
 
 # Loss and optimizer
 loss_func = nn.CrossEntropyLoss()
-optimizer = SGD(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+optimizer = SGD(model.parameters(), momentum=0.9, lr=args.learning_rate, weight_decay=args.weight_decay)
 softmax = nn.LogSoftmax(dim=1)
 
 def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):
 
     """Sets the learning rate to the according to POLICY"""
-    #for ind, step in enumerate(STEPS):
-    #  if epoch < step:
-    #    break
-    #ind = ind - 1
+    for ind, step in enumerate(STEPS):
+      if epoch < step:
+        break
+    ind = ind - 1
 
-    #lr = args.learning_rate * LRS[ind]
+    lr = args.learning_rate * LRS[ind]
     
     # First 1 epochs warmup
-    if epoch <= 1:
+    # if epoch <= 1:
       # Linear warmup from warmup learning rate to learning rate
-      cur_iter = (epoch-1) * max_iter + cur_iter
-      lr = args.warmup_rate +  cur_iter / (max_iter * 1) * (args.learning_rate - args.warmup_rate) 
+    #   cur_iter = (epoch-1) * max_iter + cur_iter
+    #   lr = args.warmup_rate +  cur_iter / (max_iter * 1) * (args.learning_rate - args.warmup_rate) 
     
-    else:
+    # else:
       # Cosine learning rate
-      cur_iter = (epoch - 2) * max_iter + cur_iter
-      full_iter = (args.epochs - 1) * max_iter
+    #   cur_iter = (epoch - 2) * max_iter + cur_iter
+    #   full_iter = (args.epochs - 1) * max_iter
       
       # Minimum learning rate
-      min_learning_rate = 1e-7
+    #   min_learning_rate = 1e-6
 
-      lr = min_learning_rate + (args.learning_rate - min_learning_rate) * (np.cos(np.pi * cur_iter / full_iter) + 1.0) * 0.5
+    #   lr = min_learning_rate + (args.learning_rate - min_learning_rate) * (np.cos(np.pi * cur_iter / full_iter) + 1.0) * 0.5
     
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+      param_group['lr'] = lr
+     
+
 
     return lr
     
 
 
 for epoch in range(max(args.resume+1, 1), args.epochs+1):
-        
+    
+    # Train
+    model.train()
     # Adjust learning rate
     #scheduler = CosineAnnealingLR(optimizer, 100, 1e-4, -1)
     progress = tqdm(enumerate(train_loader), total=len(train_loader), desc=f"Epoch: {epoch}, loss: 0.000")
@@ -154,6 +158,7 @@ for epoch in range(max(args.resume+1, 1), args.epochs+1):
           tensorboard.add_scalar('lr', lr, epoch * len(train_loader) + i)
 
     # Validation
+    model.eval()
     val_loss = 0
     val_acc = 0
     for src, target in tqdm(val_loader, desc=f"Epoch: {epoch}, validating"):

@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1, 2"
 
 import yaml
 from argparse import ArgumentParser, Namespace
@@ -35,7 +35,7 @@ parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='k
 parser.add_argument("--per_sample", type=int, default=2, help="Clips per sample")
 parser.add_argument("--weight-path", type=str, default="weights/kinetics/lin-v3/weights_20.pth", help='Path to load weights')
 # Hyperparameters
-parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
+parser.add_argument("--batch-size", type=int, default=8, help="Batch size")
 parser.add_argument("--config", type=str, default="configs/lin-vtn.yaml", help="Config file")
 
 
@@ -131,7 +131,7 @@ elif args.dataset == 'kinetics':
       self.preprocess = preprocess
       self.per_sample = per_sample
 
-      self.resize = transforms.Resize(320)
+      self.resize = transforms.Resize(256)
       self.three_crop = transforms.Compose([
         transforms.FiveCrop(224),
         transforms.Lambda(lambda crops: [ crop for i, crop in enumerate(crops) if i in [0, 3, 4] ])
@@ -191,13 +191,13 @@ for src, target in tqdm(dataloader, desc="Validating"):
     
     with torch.no_grad():
         output = model(src)
-        output = softmax(output)
         # Rearrange
         output = torch.mean(rearrange(output, '(b p) d -> b p d', p=args.per_sample*3), dim=1)
 
         loss = loss_func(output, target)
         val_loss += loss.item()
 
+        output = softmax(output)
         # Top 1
         top1_acc += torch.sum(torch.argmax(output, dim=1) == target).cpu().detach().item()
         # Top 5
