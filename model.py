@@ -35,10 +35,13 @@ class VTN(nn.Module):
         self.preprocess = transforms.Compose([
           transforms.Resize(256),
           transforms.RandomCrop(img_size),
-          transforms.RandomHorizontalFlip(),
+          #transforms.RandomHorizontalFlip(),
           transforms.ToTensor(),
           transforms.Normalize(mean=self.spatial_transformer.default_cfg['mean'], std=self.spatial_transformer.default_cfg['std'])
         ])
+        # Spatial Training preprocess
+        config = resolve_data_config({}, model=self.spatial_transformer)
+        self.train_preprocess = create_transform(**config, is_training=True)
 
        
         #Spatial to temporal rearrange

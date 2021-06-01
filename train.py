@@ -45,8 +45,8 @@ parser.add_argument("--epochs", type=int, default=25, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.1, help="Validation split")
 
 # Learning scheduler
-LRS = [1, 0.1, 0.01]
-STEPS = [1, 14, 24]
+LRS = [1, 0.5, 0.1, 0.01]
+STEPS = [1, 2, 7, 14, 20]
 
 # Parse arguments
 args = parser.parse_args()
@@ -58,6 +58,7 @@ cfg = load_yaml(args.config)
 # Load model
 model = VTN(**vars(cfg))
 preprocess = model.preprocess
+train_preprocess = model.train_preprocess
 
 if torch.cuda.is_available():
     model = nn.DataParallel(model).cuda()
@@ -68,13 +69,13 @@ if args.resume > 0:
 
 # Load dataset
 if args.dataset == 'ucf':
-  train_set = UCF101(args.annotations, args.root_dir, preprocess=preprocess, classes=args.classes, frames=cfg.frames)
+  train_set = UCF101(args.annotations, args.root_dir, preprocess=train_preprocess, classes=args.classes, frames=cfg.frames)
   val_set = UCF101(args.val_annotations, args.root_dir, preprocess=preprocess, classes=args.classes, frames=cfg.frames) 
 elif args.dataset == 'smth':
-  train_set = SMTHV2(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+  train_set = SMTHV2(args.annotations, args.root_dir, preprocess=train_preprocess, frames=cfg.frames)
   val_set = SMTHV2(args.val_annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
 elif args.dataset == 'kinetics':
-  train_set = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames)
+  train_set = Kinetics400(args.annotations, args.root_dir, preprocess=train_preprocess, frames=cfg.frames)
   #train_set, val_set = random_split(dataset, [len(dataset) - int(len(dataset) * args.validation_split), int(len(dataset) * args.validation_split)], generator=torch.Generator().manual_seed(12345))
   val_set = Kinetics400(args.annotations, args.val_root_dir, preprocess=preprocess, frames=cfg.frames)
 
@@ -87,7 +88,7 @@ tensorboard = SummaryWriter(args.log_path)
 
 # Loss and optimizer
 loss_func = nn.CrossEntropyLoss()
-optimizer = SGD(model.parameters(), momentum=0.9, lr=args.learning_rate, weight_decay=args.weight_decay)
+optimizer = SGD(model.parameters(), momentum=0.0, lr=args.learning_rate, weight_decay=args.weight_decay)
 softmax = nn.LogSoftmax(dim=1)
 
 def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):
@@ -99,6 +100,7 @@ def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):
     ind = ind - 1
 
     lr = args.learning_rate * LRS[ind]
+
     
     # First 1 epochs warmup
     # if epoch <= 1:

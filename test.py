@@ -119,7 +119,7 @@ elif args.dataset == 'kinetics':
   # Kinetics-400
   class Kinetics400(Dataset):
     
-    def __init__(self, labels, root_dir, preprocess=None, frames=16, per_sample=1):
+    def __init__(self, labels, root_dir, mean, std, frames=16, per_sample=1):
       
       assert per_sample > 0
       with open(labels, "r") as f:
@@ -139,7 +139,7 @@ elif args.dataset == 'kinetics':
 
       self.preprocess = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        transforms.Normalize(mean=mean, std=std)
       ])
 
     def __len__(self):
@@ -165,7 +165,7 @@ elif args.dataset == 'kinetics':
             out.append(imgs.unsqueeze(0))
       
       return torch.cat(out), int(label)
-  dataset = Kinetics400(args.annotations, args.root_dir, preprocess=preprocess, frames=cfg.frames, per_sample=args.per_sample)
+  dataset = Kinetics400(args.annotations, args.root_dir, mean=model.module.spatial_transformer.default_cfg['mean'], std=model.module.spatial_transformer.default_cfg['std'], frames=cfg.frames, per_sample=args.per_sample)
 
 dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8)
 
@@ -192,12 +192,16 @@ for src, target in tqdm(dataloader, desc="Validating"):
     with torch.no_grad():
         output = model(src)
         # Rearrange
-        output = torch.mean(rearrange(output, '(b p) d -> b p d', p=args.per_sample*3), dim=1)
+        loss_avg = torch.mean(rearrange(output, '(b p) d -> b p d', p=args.per_sample*3), dim=1)
 
-        loss = loss_func(output, target)
+        loss = loss_func(loss_avg, target)
         val_loss += loss.item()
 
         output = softmax(output)
+        
+        # Rearrange
+        output = torch.mean(rearrange(output, '(b p) d -> b p d', p=args.per_sample*3), dim=1)
+
         # Top 1
         top1_acc += torch.sum(torch.argmax(output, dim=1) == target).cpu().detach().item()
         # Top 5
