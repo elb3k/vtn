@@ -8,7 +8,7 @@ patch_size: 16
 spatial_frozen: False
 spatial_size: base
 # ImageNet-21K trained for better performance
-# spatial_suffix: _miil_in21k
+spatial_suffix: _in21k
 
 # Spatial Transformer
 spatial_args:
