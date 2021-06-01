@@ -35,8 +35,9 @@ Parameters are self-explanatory in config file
 
 
 ### Results
-| Model           | Top-1 | Top-5 | Weights |
-| ----------      | ----- | ----- | ------- |
-| Longformer-VTN  | 78.9% | 93.7% | taken [from](https://arxiv.org/abs/2102.00719) |
-| Transformer-VTN | 78.0% | 93.7% | taken [from](https://arxiv.org/abs/2102.05095) |
-| Linformer-VTN   | 75.6% | 92.6% | lin-v8/weights-17.pth | 
+| Model             | Top-1 | Top-5 | Weights |
+| ----------        | ----- | ----- | ------- |
+| Longformer-VTN    | 78.9% | 93.7% | taken [from](https://arxiv.org/abs/2102.00719) |
+| Transformer-VTN   | 78.0% | 93.7% | taken [from](https://arxiv.org/abs/2102.05095) |
+| Linformer-VTN     | 75.6% | 92.6% | [link](https://github.com/elb3k/vtn/releases/download/weights/lin-vtn.pth) |
+| Linformer-VTN-MIIL-21k | 76.6% | 93.1% | [link](https://github.com/elb3k/vtn/releases/download/weights/lin-vtn-miil_21k.pth) | 
