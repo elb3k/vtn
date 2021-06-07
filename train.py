@@ -29,24 +29,24 @@ parser.add_argument("--val-annotations", type=str, default="dataset/kinetics-400
 parser.add_argument("--root-dir", type=str, default="dataset/kinetics-400/train", help="Dataset files root-dir")
 parser.add_argument("--val-root-dir", type=str, default="dataset/kinetics-400/val", help="Dataset files root-dir")
 parser.add_argument("--classes", type=int, default=400, help="Number of classes")
-parser.add_argument("--config", type=str, default='configs/lin-vtn.yaml', help="Config file")
+parser.add_argument("--config", type=str, default='configs/lin-vtn-miil-21k.yaml', help="Config file")
 
 parser.add_argument("--dataset", choices=['ucf', 'smth', 'kinetics'], default='kinetics')
-parser.add_argument("--weight-path", type=str, default="weights/kinetics/21k-lin-v1", help='Path to save weights')
-parser.add_argument("--log-path", type=str, default="log/kinetics/21k-lin-v1", help='Path to save weights')
+parser.add_argument("--weight-path", type=str, default="weights/kinetics/miil-21k-lin-v3", help='Path to save weights')
+parser.add_argument("--log-path", type=str, default="log/kinetics/miil-21k-lin-v3", help='Path to save weights')
 parser.add_argument("--resume", type=int, default=0, help='Resume training from')
 
 # Hyperparameters
 parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
 parser.add_argument("--warmup_rate", type=float, default=1e-3, help="Learning rate")
-parser.add_argument("--learning_rate", type=float, default=1e-2, help="Learning rate")
+parser.add_argument("--learning_rate", type=float, default=1e-3, help="Learning rate")
 parser.add_argument("--weight-decay", type=float, default=1e-4, help="Weight decay")
 parser.add_argument("--epochs", type=int, default=25, help="Number of epochs")
 parser.add_argument("--validation-split", type=float, default=0.1, help="Validation split")
 
 # Learning scheduler
-LRS = [1, 0.5, 0.1, 0.01]
-STEPS = [1, 2, 7, 14, 20]
+LRS = [1, 0.1, 0.01]
+STEPS = [1, 14, 25]
 
 # Parse arguments
 args = parser.parse_args()
@@ -88,7 +88,7 @@ tensorboard = SummaryWriter(args.log_path)
 
 # Loss and optimizer
 loss_func = nn.CrossEntropyLoss()
-optimizer = SGD(model.parameters(), momentum=0.0, lr=args.learning_rate, weight_decay=args.weight_decay)
+optimizer = SGD(model.parameters(), momentum=0.9, lr=args.learning_rate, weight_decay=args.weight_decay)
 softmax = nn.LogSoftmax(dim=1)
 
 def adjust_learning_rate(optimizer, epoch, cur_iter, max_iter):

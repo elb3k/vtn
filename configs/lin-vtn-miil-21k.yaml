@@ -26,7 +26,7 @@ temporal_args:
   heads: 12
   dim_head: 128
   mlp_dim: 3072
-  one_kv_head: True
+  one_kv_head: False
   share_kv: True
   dropout: 0.1
   emb_dropout: 0.5

@@ -167,7 +167,7 @@ elif args.dataset == 'kinetics':
       return torch.cat(out), int(label)
   dataset = Kinetics400(args.annotations, args.root_dir, mean=model.module.spatial_transformer.default_cfg['mean'], std=model.module.spatial_transformer.default_cfg['std'], frames=cfg.frames, per_sample=args.per_sample)
 
-dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8)
+dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=10, persistent_workers=True)
 
 # Loss
 loss_func = nn.CrossEntropyLoss()
