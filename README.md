@@ -41,4 +41,4 @@ Parameters are self-explanatory in config file
 | Transformer-VTN   | 78.0% | 93.7% | taken [from](https://arxiv.org/abs/2102.05095) |
 | Linformer-VTN     | 75.6% | 92.6% | [link](https://github.com/elb3k/vtn/releases/download/weights/lin-vtn.pth) |
 | Linformer-VTN-MIIL-21k | 76.8% | 93.4% | [link](https://github.com/elb3k/vtn/releases/download/weights/lin-vtn-miil_21k.pth) |
-| Linformer-VTN-21k | 77.8% | 93.4% | |
+| Linformer-VTN-21k | 77.2% | 93.4% | |
